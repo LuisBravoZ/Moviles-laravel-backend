@@ -12,23 +12,23 @@ services:
     networks:
       - laravel
 
-db: 
-    image: postgres:15 
-    container_name: laravel_dbMoviles 
-    ports: 
-      - "5432:5432"  
-    environment: 
-      POSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: tierrita24 
-      POSTGRES_DB: laravel_app 
-    volumes: 
-      - dbdata:/var/lib/postgresql/data 
-    networks: 
-      - laravel 
+  db:
+    image: postgres:15
+    container_name: laravel_dbMoviles
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tierrita24
+      POSTGRES_DB: vehiculocrud
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - laravel
 
-webserver:
+  webserver:
     image: nginx:alpine
-    container_name: laravel_webservervMoviles
+    container_name: laravel_webserverMoviles
     ports:
       - "8080:80"
     volumes:
