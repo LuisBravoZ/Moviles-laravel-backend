@@ -16,7 +16,7 @@ services:
     image: postgres:15
     container_name: laravel_dbMoviles
     ports:
-      - "5433:5432"
+      - "5433:5433"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: tierrita24
