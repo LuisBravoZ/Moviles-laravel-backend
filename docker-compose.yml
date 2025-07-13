@@ -20,7 +20,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: tierrita24
-      POSTGRES_DB: vehiculocrud
+      POSTGRES_DB: laravel_app
     volumes:
       - dbdata:/var/lib/postgresql/data
     networks:
