@@ -20,8 +20,8 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Ajustar permisos
-RUN chmod -R 775 storage bootstrap/cache
-RUN chown -R www-data:www-data /var/www
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage /var/www/bootstrap/cache
 
 # Exponer el puerto de PHP-FPM
 EXPOSE 9000

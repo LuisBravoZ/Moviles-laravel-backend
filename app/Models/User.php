@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Datos_Personales;
 
 class User extends Authenticatable
 {
@@ -22,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'roles_id',
     ];
 
     /**
@@ -34,6 +36,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+
+    public function roles()
+    {
+        return $this->belongsTo(Role::class, 'roles_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -45,5 +53,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function role()
+{
+    return $this->belongsTo(Role::class, 'roles_id'); 
+}
+
+
+    public function dato_personal()
+    {
+        return $this->hasOne(Datos_Personales::class);
     }
 }
