@@ -202,4 +202,46 @@ class TurnoController extends Controller
             'turnos' => $turnosCreados,
         ]);
     }
+
+    public function misTurnos()
+{
+    $userId = Auth::id();
+
+    $turnos = Turno::where('paciente_id', $userId)
+                   ->where('estado', 'reservado')
+                   ->orderBy('fecha')
+                   ->orderBy('hora')
+                   ->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Lista de mis turnos reservados',
+        'turnos' => $turnos
+    ]);
+}
+
+public function turnosReservadosPorPaciente()
+{
+    $pacienteId = Auth::id();
+
+    $turnosReservados = Turno::with('nutricionista') // si tienes la relación
+        ->where('paciente_id', $pacienteId)
+        ->orderBy('fecha')
+        ->get();
+
+    if ($turnosReservados->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No hay turnos reservados todavía',
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Turnos reservados del paciente obtenidos correctamente',
+        'turnos' => $turnosReservados,
+    ]);
+}
+
+
 }

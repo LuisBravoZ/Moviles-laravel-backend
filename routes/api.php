@@ -28,6 +28,10 @@ Route::middleware('auth:sanctum')->delete('/user/{id}', [AuthController::class, 
 Route::get('/users', [AuthController::class, 'index']);
 //Ruta para editar a un usurio desde el usuario adminitrador
 Route::middleware('auth:sanctum')->put('/user/{id}', [AuthController::class, 'editAdmin']);
+//ruta para los turnos reservados por el paciente autenticado
+Route::middleware('auth:sanctum')->get('/turnos/mis-turnos', [AuthController::class, 'turnosReservados']);
+
+
 // Rutas para Datos Personales
 use App\Http\Controllers\DatosPersonalesController;
 Route::middleware('auth:sanctum')->group(function () {
@@ -45,13 +49,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/turnos/{id}/reservar', [TurnoController::class, 'reservarTurno']); // Paciente reserva
     Route::post('/turnos/{id}/cancelar', [TurnoController::class, 'cancelarTurno']); // Cancelar
     Route::post('/turnos/{id}/asignar', [TurnoController::class, 'asignarTurno']); // Nutricionista asigna
+    Route::get('/paciente/turnos', [TurnoController::class, 'turnosReservadosPorPaciente']); //turnos reservados por paciente
+    Route::get('/nutricionistas/turnos/reservados', [TurnoController::class, 'turnosReservadosNutricionista']); //turnos reservados que tiene el nutricionista
+    Route::get('/turnos/mis-turnos', [TurnoController::class, 'misTurnos']); // Mis turnos
+    
 
 });
 
+// Rutas para Nutricionista
 Route::middleware('auth:sanctum')->group(function () {
 Route::get('/nutricionistas', [NutricionistaController::class, 'indexNutricionista']);//rutas para el nutricionista
 Route::get('/nutricionistas/turnos', [NutricionistaController::class, 'turnosNutricionista']);//obtener turno por nutricionistas
-
+Route::get('/nutricionistas/turnos/{id}', [NutricionistaController::class, 'turnosNutricionistaEspecifico']);//obtener turno por nutricionista especifico
+Route::get('/nutricionistas/listar', [NutricionistaController::class, 'listarNutricionistas']);//listar nutricionistas
+Route::get('/nutricionistas/turnos/{id}', [NutricionistaController::class, 'turnosPorNutricionista']);
 });
 
 

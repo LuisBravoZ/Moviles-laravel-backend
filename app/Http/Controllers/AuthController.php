@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Turno;
 
 class AuthController extends Controller
 {
@@ -147,6 +148,43 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Usuario actualizado correctamente',
             'user' => $user
+        ]);
+    }
+
+    // funcion de turnos reservados por paciente
+    public function turnosReservados()
+    {
+        $pacienteId = Auth::id();
+        $turnos = Turno::where('paciente_id', $pacienteId)->get();
+        if ($turnos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes turnos reservados'
+            ], 404);
+
+        }
+        return response()->json([
+
+            'success' => true,
+            'message' => 'Turnos reservados obtenidos correctamente',
+            'turnos' => $turnos
+        ]);
+    }
+
+    public function misTurnosPacienteReservado()
+    {
+        $pacienteId = Auth::id();
+        $turnos = Turno::where('paciente_id', $pacienteId)->get();
+        if ($turnos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes turnos reservados'
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Turnos reservados obtenidos correctamente',
+            'turnos' => $turnos
         ]);
     }
 }

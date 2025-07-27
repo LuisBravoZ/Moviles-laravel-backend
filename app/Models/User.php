@@ -65,4 +65,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Datos_Personales::class);
     }
+
+    public function turnos()
+    {
+        return $this->hasMany(Turno::class, 'paciente_id');
+    }
 }

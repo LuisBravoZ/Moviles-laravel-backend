@@ -19,10 +19,12 @@ class Turno extends Model
     {
         return $this->belongsTo(User::class, 'nutricionista_id');
     }
+    
     public function paciente()
-    {
-        return $this->belongsTo(User::class, 'paciente_id');
-    }
+{
+    return $this->belongsTo(User::class, 'paciente_id');
+}
+
     public function scopeDisponibles($query)
     {
         return $query->where('estado', 'disponible');
