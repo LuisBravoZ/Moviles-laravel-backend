@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\DB;
 
 class TurnoController extends Controller
 {
+
+    //atender turno y el estado pasa a completado
+    public function atenderTurno($id)
+    {
+        $turno = Turno::findOrFail($id);
+        if (Auth::id() !== $turno->nutricionista_id) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+        }   
+        if ($turno->estado !== 'reservado') {
+            return response()->json(['success' => false, 'message' => 'Turno no reservado'], 400);
+        }
+        $turno->update(['estado' => 'completado']);
+        return response()->json(['success' => true, 'message' => 'Turno atendido y marcado como completado']);
+    }
+
     // Nutricionista crea turno
     public function crearTurno(Request $request)
     {
@@ -23,7 +38,7 @@ class TurnoController extends Controller
             'descanso_fin' => 'required|date_format:H:i|after:descanso_inicio',
         ]);
 
-        
+
 
         $fechaInicio = Carbon::parse($request->fecha_inicio);
         $fechaFin = Carbon::parse($request->fecha_fin);
@@ -94,32 +109,42 @@ class TurnoController extends Controller
     }
 
     // Nutricionista o paciente cancela turno
-   public function cancelarTurno($id)
-{
-    $turno = Turno::findOrFail($id);
+    public function cancelarTurno($id)
+    {
+        $turno = Turno::findOrFail($id);
 
-    // Solo el nutricionista o el paciente asociado pueden cancelar
-    if (
-        Auth::id() === $turno->nutricionista_id ||
-        Auth::id() === $turno->paciente_id
-    ) {
-        $turno->update([
-            'estado' => 'disponible',
-            'paciente_id' => null,
-        ]);
+        // Solo el nutricionista o el paciente asociado pueden cancelar
+        if (
+            Auth::id() === $turno->nutricionista_id ||
+            Auth::id() === $turno->paciente_id
+        ) {
+            $turno->update([
+                'estado' => 'disponible',
+                'paciente_id' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Turno cancelado y puesto como disponible'
+            ]);
+        }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Turno cancelado y puesto como disponible'
-        ]);
+            'success' => false,
+            'message' => 'No autorizado'
+        ], 403);
     }
 
-    return response()->json([
-        'success' => false,
-        'message' => 'No autorizado'
-    ], 403);
-}
-
+    //eliminar turno
+    public function eliminarTurno($id)
+    {
+        $turno = Turno::findOrFail($id);
+        if (Auth::id() !== $turno->nutricionista_id) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+        $turno->delete();
+        return response()->json(['success' => true, 'message' => 'Turno eliminado correctamente']);
+    }
 
     // Nutricionista asigna turno a paciente
     public function asignarTurno(Request $request, $id)
@@ -203,45 +228,111 @@ class TurnoController extends Controller
         ]);
     }
 
+    // Mis turnos reservados 
     public function misTurnos()
-{
-    $userId = Auth::id();
+    {
+        $userId = Auth::id();
 
-    $turnos = Turno::where('paciente_id', $userId)
-                   ->where('estado', 'reservado')
-                   ->orderBy('fecha')
-                   ->orderBy('hora')
-                   ->get();
+        $turnos = Turno::where('paciente_id', $userId)
+            ->where('estado', 'reservado')
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Lista de mis turnos reservados',
-        'turnos' => $turnos
-    ]);
-}
-
-public function turnosReservadosPorPaciente()
-{
-    $pacienteId = Auth::id();
-
-    $turnosReservados = Turno::with('nutricionista') // si tienes la relación
-        ->where('paciente_id', $pacienteId)
-        ->orderBy('fecha')
-        ->get();
-
-    if ($turnosReservados->isEmpty()) {
         return response()->json([
-            'success' => false,
-            'message' => 'No hay turnos reservados todavía',
-        ], 404);
+            'success' => true,
+            'message' => 'Lista de mis turnos reservados',
+            'turnos' => $turnos
+        ]);
     }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Turnos reservados del paciente obtenidos correctamente',
-        'turnos' => $turnosReservados,
-    ]);
-}
+    // Turnos reservados por paciente
+    public function turnosReservadosPorPaciente()
+    {
+        $pacienteId = Auth::id();
 
+        $turnosReservados = Turno::with('nutricionista') // si tienes la relación
+            ->where('paciente_id', $pacienteId)
+            ->orderBy('fecha')
+            ->get();
 
+        if ($turnosReservados->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay turnos reservados todavía',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Turnos reservados del paciente obtenidos correctamente',
+            'turnos' => $turnosReservados,
+        ]);
+    }
+
+    // Turnos que tiene reservados por nutricionista
+    public function turnosReservadosNutricionista()
+    {
+        $nutricionistaId = Auth::id();
+
+        $turnos = Turno::with('paciente')
+            ->where('nutricionista_id', $nutricionistaId)
+            ->where('estado', 'reservado')
+            ->get();
+
+        if ($turnos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay turnos reservados para este nutricionista',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de turnos reservados obtenida correctamente',
+            'turnos' => $turnos
+        ]);
+    }
+
+    //tunos que estan completados por nutricionista
+    public function turnosCompletadosNutricionista()
+    {
+        $nutricionistaId = Auth::id();
+        $turnos = Turno::with('paciente')
+            ->where('nutricionista_id', $nutricionistaId)
+            ->where('estado', 'completado')
+            ->get();
+        if ($turnos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay turnos completados para este nutricionista',
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de turnos completados obtenida correctamente',
+            'turnos' => $turnos
+        ]);
+    }
+
+    //turnos completados por paciente 
+    public function turnosCompletadosPorPaciente()
+    {
+        $pacienteId = Auth::id();
+        $turnos = Turno::with('nutricionista')
+            ->where('paciente_id', $pacienteId)
+            ->where('estado', 'completado')
+            ->get();
+        if ($turnos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay turnos completados para este paciente',
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de turnos completados obtenida correctamente',
+            'turnos' => $turnos
+        ]);
+    }
 }

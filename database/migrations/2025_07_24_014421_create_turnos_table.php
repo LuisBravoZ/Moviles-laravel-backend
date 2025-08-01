@@ -17,9 +17,8 @@ return new class extends Migration
             $table->date('fecha');
             $table->time('hora');
             $table->unsignedBigInteger('paciente_id')->nullable(); // null si no está reservado
-            $table->enum('estado', ['disponible', 'reservado', 'cancelado'])->default('disponible');
+            $table->enum('estado', ['disponible', 'reservado', 'cancelado', 'completado'])->default('disponible');
             $table->timestamps();
-
             $table->foreign('nutricionista_id')->references('id')->on('users');
             $table->foreign('paciente_id')->references('id')->on('users');
         });
